@@ -8,9 +8,16 @@ use Carbon\Carbon;
 
 class PostsController extends Controller
 {
+	public function __construct($value='')
+	{
+		$this->middleware('auth')->except(['index','show']);
+	}
     public function index()
     {
-    	$posts = Post::latest()->get();
+    	$posts = Post::latest()->filter(request(['month','year']))->get();
+
+    	
+    	
     	return view('posts.index',compact('posts'));
     }
     public function create()
@@ -20,10 +27,13 @@ class PostsController extends Controller
     public function store(Post $post)
     {
     	$this->validate(request(),[
-    		'title'	=>	'required|max:10',
-    		'body'	=>	'required',
+    		'title'		=>	'required|max:10',
+    		'body'		=>	'required',
     		]);
-    	$post->create(request(['title','body']));
+    	
+
+    	auth()->user()->publish(new Post(request(['title','body','user_id'])));
+
     	return redirect()->home();
     }
     public function show(Post $post)
